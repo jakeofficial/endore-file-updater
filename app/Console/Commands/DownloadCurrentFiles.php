@@ -18,7 +18,7 @@ class DownloadCurrentFiles extends Command
      *
      * @var string
      */
-    protected $signature = 'app:download-current-files {--force=0}';
+    protected $signature = 'app:download-current-files';
 
     /**
      * The console command description.
@@ -43,11 +43,9 @@ class DownloadCurrentFiles extends Command
             echo "Nie można uzyskać daty modyfikacji.";
         }
 
-        if (!$this->argument('force')) {
-            if ($latestFile && $latestFile->updated_at >= Carbon::parse($headers['Last-Modified'])) {
-                $this->error('Chyba mamy już nowsze pliki ? ');
-                exit;
-            }
+        if ($latestFile && $latestFile->updated_at >= Carbon::parse($headers['Last-Modified'])) {
+            $this->error('Chyba mamy już nowsze pliki ? ');
+            exit;
         }
 
         $temporaryDirectory = storage_path('app');
