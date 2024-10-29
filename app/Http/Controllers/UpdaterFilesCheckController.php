@@ -11,12 +11,12 @@ class UpdaterFilesCheckController extends Controller
     public function __invoke(Request $request)
     {
 
-        $jsonData = json_decode($request->getContent(), true);
-        Log::debug($jsonData);
-        $files_to_check = $jsonData['files_to_check'] ?? null;
+//        $jsonData = json_decode($request->getContent(), true);
+//        Log::debug($jsonData);
+//        $files_to_check = $jsonData['files_to_check'] ?? null;
 //        Log::debug('Raw input: ' . $request->getContent());
 //        Log::debug('Headers: ', $request->headers->all());
-//        $files_to_check = $request->post('files_to_check');
+        $files_to_check = $request->post('files_to_check');
 
         Log::debug($files_to_check);
 
