@@ -41,11 +41,12 @@ class DownloadCurrentFiles extends Command
             $this->info("Data ostatniej modyfikacji: " . Carbon::parse($headers['Last-Modified']));
         } else {
             $this->info("Nie można uzyskać daty modyfikacji.");
+            return;
         }
 
         if ($latestFile && $latestFile->updated_at >= Carbon::parse($headers['Last-Modified'])) {
             $this->error('Chyba mamy już nowsze pliki ? ');
-            exit;
+            return;
         }
 
         $temporaryDirectory = storage_path('app');
