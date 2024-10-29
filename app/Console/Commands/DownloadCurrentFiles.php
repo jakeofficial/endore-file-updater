@@ -18,7 +18,7 @@ class DownloadCurrentFiles extends Command
      *
      * @var string
      */
-    protected $signature = 'app:download-current-files';
+    protected $signature = 'app:download-current-files {force=0}';
 
     /**
      * The console command description.
@@ -43,28 +43,29 @@ class DownloadCurrentFiles extends Command
             echo "Nie można uzyskać daty modyfikacji.";
         }
 
-        if ($latestFile && $latestFile->updated_at >= Carbon::parse($headers['Last-Modified'])) {
-            $this->error('Chyba mamy już nowsze pliki ? ');
-            exit;
+        if (!$this->argument('force')) {
+            if ($latestFile && $latestFile->updated_at >= Carbon::parse($headers['Last-Modified'])) {
+                $this->error('Chyba mamy już nowsze pliki ? ');
+                exit;
+            }
         }
 
-        $temporaryDirectory = (new TemporaryDirectory())->create();
+        $temporaryDirectory = storage_path('app');
 
-        $this->info($temporaryDirectory->path());
+        $this->info($temporaryDirectory);
 
-//        $path = $temporaryDirectory->path('files.zip');
-//        Http::timeout(0)->sink($path)->get($this->url);
+        $path = storage_path('app/files.zip');
+        Http::timeout(0)->sink($path)->get($this->url);
 
         $this->info('Extracting');
-        $path = '/var/folders/8h/_h08qfpd5r7gnc9gm2t747340000gn/T/1814359587-0491557001730228061/files.zip';
         $zip = new ZipArchive();
         if ($zip->open($path) === TRUE) {
-            $zip->extractTo($temporaryDirectory->path());
+            $zip->extractTo($temporaryDirectory . '/public');
             $zip->close();
         }
 
         $this->info('Extracted');
-        $paczkaDirectory = $temporaryDirectory->path() . '/Paczka_EME/';
+        $paczkaDirectory = $temporaryDirectory . '/public/Paczka_EME/';
         $files = File::allFiles($paczkaDirectory);
 
         foreach ($files as $file) {
@@ -77,14 +78,11 @@ class DownloadCurrentFiles extends Command
             UpdaterFile::query()->updateOrCreate([
                 'name' => $relativePath,
                 'hash' => $checksum
-            ],[
+            ], [
                 'created_at' => now(),
                 'updated_at' => now()
             ]);
         }
-
-
-        $temporaryDirectory->delete();
     }
 
 }
