@@ -12,10 +12,9 @@ class UpdaterFilesCheckController extends Controller
         $files_to_check = $request->post('files_to_check');
         $latestFiles = UpdaterFile::pluck('hash', 'name')->toArray();
 
+        $missing_or_different_files = [];
 
         foreach ($latestFiles as $name => $hash) {
-
-
 
             if (!isset($files_to_check[$name])) {
                 $missing_or_different_files[$name] = $hash;
