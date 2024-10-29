@@ -3,12 +3,13 @@
 namespace App\Console\Commands;
 
 use App\Models\UpdaterFile;
+use Carbon\Carbon;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 use Spatie\TemporaryDirectory\TemporaryDirectory;
-use ZanySoft\Zip\Zip;
 use Illuminate\Support\Facades\File;
+use ZipArchive;
 
 class DownloadCurrentFiles extends Command
 {
@@ -33,29 +34,51 @@ class DownloadCurrentFiles extends Command
      */
     public function handle()
     {
+        $latestFile = UpdaterFile::query()->latest('updated_at')->first();
+
+        $headers = get_headers($this->url, 1);
+        if (isset($headers['Last-Modified'])) {
+            echo "Data ostatniej modyfikacji: " . Carbon::parse($headers['Last-Modified']);
+        } else {
+            echo "Nie można uzyskać daty modyfikacji.";
+        }
+
+        if ($latestFile && $latestFile->updated_at >= Carbon::parse($headers['Last-Modified'])) {
+            $this->error('Chyba mamy już nowsze pliki ? ');
+            exit;
+        }
+
         $temporaryDirectory = (new TemporaryDirectory())->create();
 
         $this->info($temporaryDirectory->path());
 
-        $path = $temporaryDirectory->path('files.zip');
-        Http::timeout(0)->sink($path)->get($this->url);
+//        $path = $temporaryDirectory->path('files.zip');
+//        Http::timeout(0)->sink($path)->get($this->url);
 
-        $zip = Zip::open($path);
-        $zip->extract($temporaryDirectory->path());
-        $zip->close();
+        $this->info('Extracting');
+        $path = '/var/folders/8h/_h08qfpd5r7gnc9gm2t747340000gn/T/1814359587-0491557001730228061/files.zip';
+        $zip = new ZipArchive();
+        if ($zip->open($path) === TRUE) {
+            $zip->extractTo($temporaryDirectory->path());
+            $zip->close();
+        }
 
-
-        $files = File::allFiles($temporaryDirectory->path());
+        $this->info('Extracted');
+        $paczkaDirectory = $temporaryDirectory->path() . '/Paczka_EME/';
+        $files = File::allFiles($paczkaDirectory);
 
         foreach ($files as $file) {
-            $filePath = $file->getPathname();
-            $checksum = md5_file($filePath);
+            $fullPath = $file->getPathname();
+            $relativePath = str_replace($paczkaDirectory, '', $fullPath);
+            $checksum = md5_file($fullPath);
 
+            $this->info($relativePath . ' => ' . $checksum);
 
-            UpdaterFile::query()->where([
-                'name' => $filePath,
+            UpdaterFile::query()->updateOrCreate([
+                'name' => $relativePath,
                 'hash' => $checksum
-            ])->updateOrCreate([
+            ],[
+                'created_at' => now(),
                 'updated_at' => now()
             ]);
         }
@@ -64,12 +87,4 @@ class DownloadCurrentFiles extends Command
         $temporaryDirectory->delete();
     }
 
-
-    private function calculateChecksums($directory)
-    {
-        $checksums = [];
-
-
-        return $checksums;
-    }
 }
