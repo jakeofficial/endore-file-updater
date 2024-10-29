@@ -12,12 +12,13 @@ class UpdaterFilesCheckController extends Controller
     {
 
         $jsonData = json_decode($request->getContent(), true);
+        Log::debug($jsonData);
         $files_to_check = $jsonData['files_to_check'] ?? null;
 //        Log::debug('Raw input: ' . $request->getContent());
 //        Log::debug('Headers: ', $request->headers->all());
 //        $files_to_check = $request->post('files_to_check');
 
-        Log::debug('Files to check: ', $files_to_check);
+        Log::debug($files_to_check);
 
         $latestFiles = UpdaterFile::pluck('hash', 'name')->toArray();
 
