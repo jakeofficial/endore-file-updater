@@ -12,7 +12,7 @@ class UpdaterFilesCheckController extends Controller
     {
         $files_to_check = $request->post('files_to_check');
 
-        Log::debug('Files to check: '. $files_to_check);
+        Log::debug('Files to check: ', $files_to_check);
 
         $latestFiles = UpdaterFile::pluck('hash', 'name')->toArray();
 
@@ -27,7 +27,7 @@ class UpdaterFilesCheckController extends Controller
             }
         }
 
-        Log::debug('Missing: '. $missing_or_different_files);
+        Log::debug('Missing: ', $missing_or_different_files);
 
         return response()->json($missing_or_different_files);
     }
