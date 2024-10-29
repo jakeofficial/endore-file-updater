@@ -18,7 +18,7 @@ class DownloadCurrentFiles extends Command
      *
      * @var string
      */
-    protected $signature = 'app:download-current-files {force=0}';
+    protected $signature = 'app:download-current-files {--force=0}';
 
     /**
      * The console command description.
