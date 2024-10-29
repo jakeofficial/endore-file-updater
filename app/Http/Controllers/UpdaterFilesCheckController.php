@@ -10,6 +10,9 @@ class UpdaterFilesCheckController extends Controller
 {
     public function __invoke(Request $request)
     {
+
+        Log::debug('Raw input: ' . $request->getContent());
+        Log::debug('Headers: ', $request->headers->all());
         $files_to_check = $request->post('files_to_check');
 
         Log::debug('Files to check: ', $request->post());
