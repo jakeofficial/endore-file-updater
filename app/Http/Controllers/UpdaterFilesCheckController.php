@@ -25,13 +25,24 @@ class UpdaterFilesCheckController extends Controller
 
         $missing_or_different_files = [];
 
+        $skip = [
+            'ClassicUO/Data/'
+        ];
+
         foreach ($latestFiles as $name => $hash) {
+
+
+            foreach($skip as $entry){
+                if(str_contains($name, $entry))
+                    continue 2;
+            }
 
             if (!isset($files_to_check[$name])) {
                 $missing_or_different_files[$name] = $hash;
             } elseif ($files_to_check[$name] !== $hash) {
                 $missing_or_different_files[$name] = $hash;
             }
+
         }
 
         Log::debug('Missing: ', $missing_or_different_files);
